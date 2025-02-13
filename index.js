@@ -59,7 +59,7 @@ function calculateCRC16(hexInput) {
 }
 
 /**
- * Zet de array van bytes (hex string zonder spaties) om in een nette hexstring met spaties.
+ * Formatteer een hex-string zonder spaties naar een nette hex-string met spaties.
  * @param {string} hexStr - bv. "010600860640"
  * @returns {string} bv. "01 06 00 86 06 40"
  */
@@ -68,7 +68,25 @@ function formatHexString(hexStr) {
 }
 
 /**
- * Slaat de huidige commands op in een JSON bestand.
+ * Decode een payload (bijv. base64) naar een hex-string.
+ * Als de payload correct is, krijg je een hex-string terug met spaties.
+ * @param {string} payload - bv. base64 gecodeerde string
+ * @returns {string|null} bv. "01 06 00 86 06 40 6A 73" of null als decoderen mislukt
+ */
+function decodePayload(payload) {
+  try {
+    // Veronderstel dat de payload base64-gecodeerd is
+    const buffer = Buffer.from(payload, 'base64');
+    const hex = buffer.toString('hex').toUpperCase();
+    // Format: voeg een spatie in tussen elke twee hextekens
+    return hex.match(/.{1,2}/g).join(' ');
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
+ * Sla de huidige commands op in een JSON-bestand.
  */
 function saveCommands() {
   fs.writeFile(DATA_FILE, JSON.stringify(commands, null, 2), err => {
@@ -78,7 +96,7 @@ function saveCommands() {
   });
 }
 
-// Helper om een header met Bootstrap te genereren
+// Helpers voor HTML-rendering met Bootstrap
 function renderHeader(title) {
   return `
   <!DOCTYPE html>
@@ -94,13 +112,18 @@ function renderHeader(title) {
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
     <div class="container">
       <a class="navbar-brand" href="/">Commando CRC16</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="/decode">Payload decoderen</a></li>
+        </ul>
+      </div>
     </div>
   </nav>
   <div class="container">
   `;
 }
 
-// Helper om de footer te genereren
 function renderFooter() {
   return `
   </div>
@@ -111,7 +134,7 @@ function renderFooter() {
   `;
 }
 
-// Toon het formulier en de lijst met opgeslagen commando's
+// Route: Toon hoofdpagina met formulier voor commando's
 app.get('/', (req, res) => {
   let listHtml = '<ul class="list-group">';
   for (const key in commands) {
@@ -142,7 +165,7 @@ app.get('/', (req, res) => {
   `);
 });
 
-// Verwerk formulier en sla commando op
+// Route: Verwerk formulier en sla commando op
 app.post('/', (req, res) => {
   const cmdName = req.body.cmdName.trim();
   let cmdBytes = req.body.cmdBytes.trim();
@@ -150,7 +173,7 @@ app.post('/', (req, res) => {
   // Verwijder spaties en maak uppercase
   const cleaned = cmdBytes.replace(/\s+/g, '').toUpperCase();
 
-  // Valideer: Moet een even aantal hextekens hebben en alleen hextekens bevatten
+  // Valideer: even aantal hextekens en alleen geldige hextekens
   if (cleaned.length % 2 !== 0 || /[^0-9A-F]/.test(cleaned)) {
     return res.send(`
       ${renderHeader('Fout')}
@@ -168,10 +191,8 @@ app.post('/', (req, res) => {
   const formattedData = formatHexString(cleaned);
   const completeCommand = formattedData + " " + crc;
 
-  // Gebruik de data (zonder de CRC) als key. Zo voorkomen we duplicaten.
-  // Als de bytes reeds bestaan, wordt alleen de omschrijving aangepast.
+  // Gebruik de data (zonder de CRC) als key; als de bytes reeds bestaan, update dan de omschrijving.
   if (commands.hasOwnProperty(formattedData)) {
-    // Update de omschrijving
     commands[formattedData].name = cmdName;
   } else {
     commands[formattedData] = {
@@ -180,10 +201,8 @@ app.post('/', (req, res) => {
     };
   }
 
-  // Sla de commands op in het JSON-bestand
   saveCommands();
 
-  // Toon resultaat
   res.send(`
     ${renderHeader('Commando Opgeslagen')}
     <div class="card">
@@ -194,6 +213,52 @@ app.post('/', (req, res) => {
         <p class="card-text"><strong>CRC16:</strong> ${crc}</p>
         <p class="card-text"><strong>Volledige command:</strong> ${completeCommand}</p>
         <a href="/" class="btn btn-primary">Terug naar overzicht</a>
+      </div>
+    </div>
+    ${renderFooter()}
+  `);
+});
+
+// Route: Formulier om een payload te decoderen
+app.get('/decode', (req, res) => {
+  res.send(`
+    ${renderHeader('Payload decoderen')}
+    <h2 class="mb-4">Payload decoderen</h2>
+    <form method="POST" action="/decode">
+      <div class="mb-3">
+        <label for="payload" class="form-label">Voer payload in (base64):</label>
+        <input type="text" id="payload" name="payload" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Decodeer Payload</button>
+    </form>
+    ${renderFooter()}
+  `);
+});
+
+// Route: Verwerk de payload en toon de decodering
+app.post('/decode', (req, res) => {
+  const payload = req.body.payload.trim();
+  const decoded = decodePayload(payload);
+
+  if (!decoded) {
+    return res.send(`
+      ${renderHeader('Fout')}
+      <div class="alert alert-danger" role="alert">
+        Fout bij het decoderen van de payload. Controleer de invoer.
+      </div>
+      <a href="/decode" class="btn btn-secondary">Probeer opnieuw</a>
+      ${renderFooter()}
+    `);
+  }
+
+  res.send(`
+    ${renderHeader('Payload Gedecodeerd')}
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Payload gedecodeerd</h5>
+        <p class="card-text"><strong>Invoer (base64):</strong> ${payload}</p>
+        <p class="card-text"><strong>Gecodeerd naar hex:</strong> ${decoded}</p>
+        <a href="/decode" class="btn btn-primary">Nieuwe decodering</a>
       </div>
     </div>
     ${renderFooter()}
