@@ -78,33 +78,67 @@ function saveCommands() {
   });
 }
 
+// Helper om een header met Bootstrap te genereren
+function renderHeader(title) {
+  return `
+  <!DOCTYPE html>
+  <html lang="nl">
+  <head>
+    <meta charset="utf-8">
+    <title>${title}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS via CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <div class="container">
+      <a class="navbar-brand" href="/">Commando CRC16</a>
+    </div>
+  </nav>
+  <div class="container">
+  `;
+}
+
+// Helper om de footer te genereren
+function renderFooter() {
+  return `
+  </div>
+  <!-- Bootstrap JS via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+  </html>
+  `;
+}
+
 // Toon het formulier en de lijst met opgeslagen commando's
 app.get('/', (req, res) => {
-  let listHtml = '<ul>';
+  let listHtml = '<ul class="list-group">';
   for (const key in commands) {
-    listHtml += `<li><strong>${commands[key].name}</strong>: ${commands[key].command}</li>`;
+    listHtml += `<li class="list-group-item">
+      <strong>${commands[key].name}</strong>: ${commands[key].command}
+    </li>`;
   }
   listHtml += '</ul>';
 
   res.send(`
-    <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Commando en CRC16 Opslaan</title>
-      </head>
-      <body>
-        <h2>Commando met CRC16 opslaan</h2>
-        <form method="POST" action="/">
-          <label for="cmdName">Commando naam:</label><br/>
-          <input type="text" id="cmdName" name="cmdName" required style="width:300px;"/><br/><br/>
-          <label for="cmdBytes">Hex bytes (zonder CRC, bv. "01 06 00 86 06 40"):</label><br/>
-          <input type="text" id="cmdBytes" name="cmdBytes" required style="width:300px;"/><br/><br/>
-          <button type="submit">Opslaan</button>
-        </form>
-        <h3>Opgeslagen commando's</h3>
-        ${listHtml}
-      </body>
-    </html>
+    ${renderHeader('Commando en CRC16 Opslaan')}
+    <h2 class="mb-4">Commando met CRC16 opslaan</h2>
+    <form method="POST" action="/">
+      <div class="mb-3">
+        <label for="cmdName" class="form-label">Commando naam:</label>
+        <input type="text" id="cmdName" name="cmdName" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label for="cmdBytes" class="form-label">Hex bytes (zonder CRC, bv. "01 06 00 86 06 40"):</label>
+        <input type="text" id="cmdBytes" name="cmdBytes" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Opslaan</button>
+    </form>
+    <hr>
+    <h3>Opgeslagen commando's</h3>
+    ${listHtml}
+    ${renderFooter()}
   `);
 });
 
@@ -119,16 +153,12 @@ app.post('/', (req, res) => {
   // Valideer: Moet een even aantal hextekens hebben en alleen hextekens bevatten
   if (cleaned.length % 2 !== 0 || /[^0-9A-F]/.test(cleaned)) {
     return res.send(`
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <title>Fout</title>
-        </head>
-        <body>
-          <p>Fout: Voer een geldige hex-reeks in (even aantal hextekens, alleen 0-9 en A-F).</p>
-          <a href="/">Terug</a>
-        </body>
-      </html>
+      ${renderHeader('Fout')}
+      <div class="alert alert-danger" role="alert">
+        Fout: Voer een geldige hex-reeks in (even aantal hextekens, alleen 0-9 en A-F).
+      </div>
+      <a href="/" class="btn btn-secondary">Terug</a>
+      ${renderFooter()}
     `);
   }
 
@@ -155,21 +185,18 @@ app.post('/', (req, res) => {
 
   // Toon resultaat
   res.send(`
-    <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Commando Opgeslagen</title>
-      </head>
-      <body>
-        <h2>Commando opgeslagen</h2>
-        <p><strong>Naam:</strong> ${cmdName}</p>
-        <p><strong>Bytes (zonder CRC):</strong> ${formattedData}</p>
-        <p><strong>CRC16:</strong> ${crc}</p>
-        <p><strong>Volledige command:</strong> ${completeCommand}</p>
-        <br/>
-        <a href="/">Terug naar overzicht</a>
-      </body>
-    </html>
+    ${renderHeader('Commando Opgeslagen')}
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Commando opgeslagen</h5>
+        <p class="card-text"><strong>Naam:</strong> ${cmdName}</p>
+        <p class="card-text"><strong>Bytes (zonder CRC):</strong> ${formattedData}</p>
+        <p class="card-text"><strong>CRC16:</strong> ${crc}</p>
+        <p class="card-text"><strong>Volledige command:</strong> ${completeCommand}</p>
+        <a href="/" class="btn btn-primary">Terug naar overzicht</a>
+      </div>
+    </div>
+    ${renderFooter()}
   `);
 });
 
