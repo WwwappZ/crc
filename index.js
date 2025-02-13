@@ -21,23 +21,16 @@ if (fs.existsSync(DATA_FILE)) {
 
 /**
  * Bereken de Modbus CRC16 van een hex-reeks.
- * @param {string} hexInput - De invoer in hex, bv. "01 06 00 86 06 40"
+ * @param {string} hexInput - bv. "01 06 00 86 06 40"
  * @returns {string} De CRC16 in little-endian, bv. "6A 73"
  */
 function calculateCRC16(hexInput) {
-  // Verwijder spaties en andere witruimtes
   const hexStr = hexInput.replace(/\s+/g, '');
-  
-  // Zet de hexstring om naar een array met bytes
   const bytes = [];
   for (let i = 0; i < hexStr.length; i += 2) {
     bytes.push(parseInt(hexStr.substr(i, 2), 16));
   }
-  
-  // Initialiseer CRC met 0xFFFF
   let crc = 0xFFFF;
-  
-  // Verwerk elk byte
   bytes.forEach(byte => {
     crc ^= byte;
     for (let i = 0; i < 8; i++) {
@@ -48,12 +41,8 @@ function calculateCRC16(hexInput) {
       }
     }
   });
-  
-  // Haal de lage en hoge byte, in little-endian (laag eerst)
   const low = crc & 0xFF;
   const high = (crc >> 8) & 0xFF;
-  
-  // Geef terug als hexstring met twee cijfers per byte
   return low.toString(16).padStart(2, '0').toUpperCase() + " " +
          high.toString(16).padStart(2, '0').toUpperCase();
 }
@@ -68,35 +57,76 @@ function formatHexString(hexStr) {
 }
 
 /**
- * Decode een payload (bijv. base64) naar een hex-string.
- * Als de payload correct is, krijg je een hex-string terug met spaties.
- * @param {string} payload - bv. base64 gecodeerde string
- * @returns {string|null} bv. "01 06 00 86 06 40 6A 73" of null als decoderen mislukt
+ * Analyseer een Modbus-frame door de laatste 4 hextekens (de checksum) te verwijderen.
+ * Er wordt vervolgens gekeken naar de resterende data:
+ *
+ * - Voor een write-response verwacht men 12 hextekens (6 bytes):
+ *     Byte0: Slave adres
+ *     Byte1: Function code
+ *     Byte2-3: Registeradres
+ *     Byte4-5: Registerwaarde
+ *
+ * - Voor een read-response verwacht men 10 hextekens (5 bytes):
+ *     Byte0: Slave adres
+ *     Byte1: Function code
+ *     Byte2: Byte count
+ *     Byte3-4: Registerwaarde
+ *
+ * De registerwaarde wordt omgezet naar een decimale waarde en gedeeld door 100 (schaalfactor 0.01).
+ *
+ * @param {string} hexFrame - Volledig frame als hex-string met of zonder spaties.
+ * @returns {object|null} Object met analysegegevens of null bij onbekende structuur.
  */
-function decodePayload(payload) {
-  try {
-    // Veronderstel dat de payload base64-gecodeerd is
-    const buffer = Buffer.from(payload, 'base64');
-    const hex = buffer.toString('hex').toUpperCase();
-    // Format: voeg een spatie in tussen elke twee hextekens
-    return hex.match(/.{1,2}/g).join(' ');
-  } catch (error) {
+function analyzeModbusFrame(hexFrame) {
+  const cleaned = hexFrame.replace(/\s+/g, '').toUpperCase();
+  if (cleaned.length < 4) return null; // minimaal voor CRC aanwezig
+  // Verwijder de laatste 4 hextekens (CRC)
+  const dataWithoutCRC = cleaned.slice(0, -4);
+  
+  // Write response: verwacht 12 hextekens (6 bytes)
+  if (dataWithoutCRC.length === 12) {
+    const slave = dataWithoutCRC.substr(0, 2);
+    const func = dataWithoutCRC.substr(2, 2);
+    const regAddrHex = dataWithoutCRC.substr(4, 4); // Registeradres
+    const regValueHex = dataWithoutCRC.substr(8, 4);  // Registerwaarde
+    const regAddr = parseInt(regAddrHex, 16);
+    const regValue = parseInt(regValueHex, 16);
+    const regValueScaled = regValue / 100; // schaalfactor
+    return {
+      type: 'write',
+      slave,
+      func,
+      regAddrHex: regAddrHex.match(/.{1,2}/g).join(' '),
+      regAddr,
+      regValueHex: regValueHex.match(/.{1,2}/g).join(' '),
+      regValue,
+      regValueScaled
+    };
+  }
+  // Read response: verwacht 10 hextekens (5 bytes)
+  else if (dataWithoutCRC.length === 10) {
+    const slave = dataWithoutCRC.substr(0, 2);
+    const func = dataWithoutCRC.substr(2, 2);
+    const byteCount = dataWithoutCRC.substr(4, 2);
+    const regValueHex = dataWithoutCRC.substr(6, 4);
+    const regValue = parseInt(regValueHex, 16);
+    const regValueScaled = regValue / 100;
+    return {
+      type: 'read',
+      slave,
+      func,
+      byteCount,
+      regValueHex: regValueHex.match(/.{1,2}/g).join(' '),
+      regValue,
+      regValueScaled
+    };
+  }
+  else {
     return null;
   }
 }
 
-/**
- * Sla de huidige commands op in een JSON-bestand.
- */
-function saveCommands() {
-  fs.writeFile(DATA_FILE, JSON.stringify(commands, null, 2), err => {
-    if (err) {
-      console.error("Fout bij opslaan:", err);
-    }
-  });
-}
-
-// Helpers voor HTML-rendering met Bootstrap
+/* Helpers voor HTML-rendering met Bootstrap */
 function renderHeader(title) {
   return `
   <!DOCTYPE html>
@@ -134,12 +164,25 @@ function renderFooter() {
   `;
 }
 
-// Route: Toon hoofdpagina met formulier voor commando's
+/* Routes */
+
+// Homepagina: Toon formulier voor opslaan én lijst met opgeslagen commando's inclusief analyse
 app.get('/', (req, res) => {
   let listHtml = '<ul class="list-group">';
   for (const key in commands) {
+    // Analyseer het opgeslagen volledige commando
+    const analysis = analyzeModbusFrame(commands[key].command);
+    let analysisText = "";
+    if (analysis) {
+      if (analysis.type === 'write') {
+        analysisText = `<br/><small>Analyse: Registeradres ${analysis.regAddr} (0x${analysis.regAddrHex}) - Registerwaarde ${analysis.regValueScaled} (${analysis.regValue} raw, 0x${analysis.regValueHex})</small>`;
+      } else if (analysis.type === 'read') {
+        analysisText = `<br/><small>Analyse: Registerwaarde ${analysis.regValueScaled} (${analysis.regValue} raw, 0x${analysis.regValueHex})</small>`;
+      }
+    }
     listHtml += `<li class="list-group-item">
       <strong>${commands[key].name}</strong>: ${commands[key].command}
+      ${analysisText}
     </li>`;
   }
   listHtml += '</ul>';
@@ -165,15 +208,12 @@ app.get('/', (req, res) => {
   `);
 });
 
-// Route: Verwerk formulier en sla commando op
+// Verwerk formulier en sla commando op
 app.post('/', (req, res) => {
   const cmdName = req.body.cmdName.trim();
   let cmdBytes = req.body.cmdBytes.trim();
-
-  // Verwijder spaties en maak uppercase
   const cleaned = cmdBytes.replace(/\s+/g, '').toUpperCase();
 
-  // Valideer: even aantal hextekens en alleen geldige hextekens
   if (cleaned.length % 2 !== 0 || /[^0-9A-F]/.test(cleaned)) {
     return res.send(`
       ${renderHeader('Fout')}
@@ -185,13 +225,12 @@ app.post('/', (req, res) => {
     `);
   }
 
-  // Bereken de CRC
+  // Bereken de CRC en vorm het volledige commando (data + CRC)
   const crc = calculateCRC16(cmdBytes);
-  // Voeg de CRC toe aan de ingevoerde bytes (in nette notatie)
   const formattedData = formatHexString(cleaned);
   const completeCommand = formattedData + " " + crc;
 
-  // Gebruik de data (zonder de CRC) als key; als de bytes reeds bestaan, update dan de omschrijving.
+  // Gebruik de data (zonder CRC) als key; update de naam indien de data al bestaat.
   if (commands.hasOwnProperty(formattedData)) {
     commands[formattedData].name = cmdName;
   } else {
@@ -200,8 +239,9 @@ app.post('/', (req, res) => {
       command: completeCommand
     };
   }
-
-  saveCommands();
+  fs.writeFile(DATA_FILE, JSON.stringify(commands, null, 2), err => {
+    if (err) console.error("Fout bij opslaan:", err);
+  });
 
   res.send(`
     ${renderHeader('Commando Opgeslagen')}
@@ -211,7 +251,7 @@ app.post('/', (req, res) => {
         <p class="card-text"><strong>Naam:</strong> ${cmdName}</p>
         <p class="card-text"><strong>Bytes (zonder CRC):</strong> ${formattedData}</p>
         <p class="card-text"><strong>CRC16:</strong> ${crc}</p>
-        <p class="card-text"><strong>Volledige command:</strong> ${completeCommand}</p>
+        <p class="card-text"><strong>Volledige commando:</strong> ${completeCommand}</p>
         <a href="/" class="btn btn-primary">Terug naar overzicht</a>
       </div>
     </div>
@@ -219,7 +259,7 @@ app.post('/', (req, res) => {
   `);
 });
 
-// Route: Formulier om een payload te decoderen
+// Payload decoderen (bestaande functionaliteit)
 app.get('/decode', (req, res) => {
   res.send(`
     ${renderHeader('Payload decoderen')}
@@ -235,13 +275,25 @@ app.get('/decode', (req, res) => {
   `);
 });
 
-// Route: Verwerk de payload en toon de decodering
 app.post('/decode', (req, res) => {
   const payload = req.body.payload.trim();
-  const decoded = decodePayload(payload);
-
-  if (!decoded) {
-    return res.send(`
+  try {
+    const buffer = Buffer.from(payload, 'base64');
+    const hex = buffer.toString('hex').toUpperCase().match(/.{1,2}/g).join(' ');
+    res.send(`
+      ${renderHeader('Payload Gedecodeerd')}
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Payload gedecodeerd</h5>
+          <p class="card-text"><strong>Invoer (base64):</strong> ${payload}</p>
+          <p class="card-text"><strong>Gecodeerd naar hex:</strong> ${hex}</p>
+          <a href="/decode" class="btn btn-primary">Nieuwe decodering</a>
+        </div>
+      </div>
+      ${renderFooter()}
+    `);
+  } catch (error) {
+    res.send(`
       ${renderHeader('Fout')}
       <div class="alert alert-danger" role="alert">
         Fout bij het decoderen van de payload. Controleer de invoer.
@@ -250,19 +302,6 @@ app.post('/decode', (req, res) => {
       ${renderFooter()}
     `);
   }
-
-  res.send(`
-    ${renderHeader('Payload Gedecodeerd')}
-    <div class="card">
-      <div class="card-body">
-        <h5 class="card-title">Payload gedecodeerd</h5>
-        <p class="card-text"><strong>Invoer (base64):</strong> ${payload}</p>
-        <p class="card-text"><strong>Gecodeerd naar hex:</strong> ${decoded}</p>
-        <a href="/decode" class="btn btn-primary">Nieuwe decodering</a>
-      </div>
-    </div>
-    ${renderFooter()}
-  `);
 });
 
 // Start de server op poort 3000
