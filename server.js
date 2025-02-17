@@ -32,7 +32,7 @@ app.use('/wizard/off', require('./routes/wizard/off'));
 app.use('/wizard/current', require('./routes/wizard/current'));
 app.use('/wizard/energy', require('./routes/wizard/energy'));
 
-const PORT = 3001;
+const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server draait op http://localhost:${PORT}`);
 });
