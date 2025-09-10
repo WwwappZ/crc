@@ -2,5 +2,13 @@
   "01 06 00 86 06 40": {
     "name": "Zet de meter naar 16A",
     "command": "01 06 00 86 06 40 6A 73"
+  },
+  "01 06 00 A2 00 0A": {
+    "name": "Interval naar 10 minyten",
+    "command": "01 06 00 A2 00 0A A8 2F"
+  },
+  "01 06 00 87 00 01": {
+    "name": "Auto inschakelen na overbelasting 1 minuut",
+    "command": "01 06 00 87 00 01 F8 23"
   }
 }

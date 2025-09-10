@@ -17,10 +17,10 @@ function renderHeader(title) {
         <a class="navbar-brand" href="/">Commando CRC16</a>
         <div class="collapse navbar-collapse">
           <ul class="navbar-nav ms-auto">
-            <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="/readcommands">Read Commando's</a></li>
+            <li class="nav-item"><a class="nav-link" href="/writecommands">Write Commando's</a></li>
             <li class="nav-item"><a class="nav-link" href="/decode">Payload decoderen</a></li>
             <li class="nav-item"><a class="nav-link" href="/hex2base64">Hex naar Base64</a></li>
-            <li class="nav-item"><a class="nav-link" href="/wizard">Meter Wizard</a></li>
           </ul>
         </div>
       </div>

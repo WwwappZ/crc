@@ -361,7 +361,7 @@ app.post('/hex2base64', (req, res) => {
 });
 
 // Start de server op poort 3000
-const PORT = 3000;
+const PORT = 3002;
 app.listen(PORT, () => {
   console.log(`Server draait op http://localhost:${PORT}`);
 });

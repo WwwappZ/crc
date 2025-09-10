@@ -1,0 +1,262 @@
+{
+  "100": {
+    "name": "Software/Hardware versie",
+    "description": "Software and hardware version",
+    "register": 100,
+    "length": 1,
+    "access": "R/W",
+    "unit": "Decimal X.X.XX",
+    "command": "01 03 00 64 00 01",
+    "responseFormat": "Version number"
+  },
+  "101": {
+    "name": "Communicatie adres",
+    "description": "Communication address",
+    "register": 101,
+    "length": 1,
+    "access": "R/W",
+    "unit": "1-247",
+    "command": "01 03 00 65 00 01",
+    "responseFormat": "Address value"
+  },
+  "102": {
+    "name": "Serienummer",
+    "description": "Serial number",
+    "register": 102,
+    "length": 2,
+    "access": "R/W",
+    "unit": "8-digit BCD",
+    "command": "01 03 00 66 00 02",
+    "responseFormat": "Serial number"
+  },
+  "104": {
+    "name": "Totale elektriciteit",
+    "description": "Total energy",
+    "register": 104,
+    "length": 2,
+    "access": "R/C",
+    "unit": "0.01 kWh",
+    "command": "01 03 00 68 00 02",
+    "responseFormat": "Total energy in 0.01 kWh"
+  },
+  "106": {
+    "name": "Resterende elektriciteit",
+    "description": "Remaining energy",
+    "register": 106,
+    "length": 2,
+    "access": "R/C",
+    "unit": "0.01 kWh",
+    "command": "01 03 00 6A 00 02",
+    "responseFormat": "Remaining energy in 0.01 kWh"
+  },
+  "108": {
+    "name": "Totaal bedrag",
+    "description": "Total amount",
+    "register": 108,
+    "length": 4,
+    "access": "R/C",
+    "unit": "0.0001 Rand",
+    "command": "01 03 00 6C 00 04",
+    "responseFormat": "Total amount in 0.0001 Rand"
+  },
+  "112": {
+    "name": "Resterend bedrag",
+    "description": "Remaining amount",
+    "register": 112,
+    "length": 4,
+    "access": "R/C",
+    "unit": "0.0001 Rand",
+    "command": "01 03 00 70 00 04",
+    "responseFormat": "Remaining amount in 0.0001 Rand"
+  },
+  "116": {
+    "name": "Huidige maand elektriciteit",
+    "description": "Current month energy",
+    "register": 116,
+    "length": 2,
+    "access": "R/C",
+    "unit": "0.01 kWh",
+    "command": "01 03 00 74 00 02",
+    "responseFormat": "Current month energy in 0.01 kWh"
+  },
+  "118": {
+    "name": "Huidige maand bedrag",
+    "description": "Current month amount",
+    "register": 118,
+    "length": 4,
+    "access": "R/C",
+    "unit": "0.0001 Rand",
+    "command": "01 03 00 76 00 04",
+    "responseFormat": "Current month amount in 0.0001 Rand"
+  },
+  "122": {
+    "name": "Actief vermogen",
+    "description": "Active power",
+    "register": 122,
+    "length": 1,
+    "access": "R",
+    "unit": "W",
+    "command": "01 03 00 7A 00 01",
+    "responseFormat": "Active power in W"
+  },
+  "123": {
+    "name": "Reactief vermogen",
+    "description": "Reactive power",
+    "register": 123,
+    "length": 1,
+    "access": "R",
+    "unit": "Var",
+    "command": "01 03 00 7B 00 01",
+    "responseFormat": "Reactive power in Var"
+  },
+  "124": {
+    "name": "Voltage",
+    "description": "Voltage",
+    "register": 124,
+    "length": 1,
+    "access": "R",
+    "unit": "0.01V",
+    "command": "01 03 00 7C 00 01",
+    "responseFormat": "Voltage in 0.01V"
+  },
+  "125": {
+    "name": "Stroom",
+    "description": "Current",
+    "register": 125,
+    "length": 1,
+    "access": "R",
+    "unit": "0.01A",
+    "command": "01 03 00 7D 00 01",
+    "responseFormat": "Current in 0.01A"
+  },
+  "126": {
+    "name": "Vermogensfactor",
+    "description": "Power factor",
+    "register": 126,
+    "length": 1,
+    "access": "R",
+    "unit": "0.001",
+    "command": "01 03 00 7E 00 01",
+    "responseFormat": "Power factor 0.001"
+  },
+  "127": {
+    "name": "Frequentie",
+    "description": "Frequency",
+    "register": 127,
+    "length": 1,
+    "access": "R",
+    "unit": "0.01Hz",
+    "command": "01 03 00 7F 00 01",
+    "responseFormat": "Frequency in 0.01Hz"
+  },
+  "128": {
+    "name": "Relais status",
+    "description": "Relay status",
+    "register": 128,
+    "length": 1,
+    "access": "R",
+    "unit": "Bit flags",
+    "command": "01 03 00 80 00 01",
+    "responseFormat": "Bit0=1 closed, bit1=1 relay failure"
+  },
+  "129": {
+    "name": "Werkingsmodus",
+    "description": "Working mode",
+    "register": 129,
+    "length": 1,
+    "access": "R/W",
+    "unit": "Mode",
+    "command": "01 03 00 81 00 01",
+    "responseFormat": "0=Postpaid, 1=Energy prepaid, 2=Amount prepaid"
+  },
+  "130": {
+    "name": "Tijd",
+    "description": "Time",
+    "register": 130,
+    "length": 3,
+    "access": "R/W",
+    "unit": "Year/Month/Day/Hour/Min/Sec",
+    "command": "01 03 00 82 00 03",
+    "responseFormat": "Year, month, day, hour, minute, second"
+  },
+  "133": {
+    "name": "RTC kalibratie",
+    "description": "RTC calibration",
+    "register": 133,
+    "length": 1,
+    "access": "R/W",
+    "unit": "0.01 sec/day",
+    "command": "01 03 00 85 00 01",
+    "responseFormat": "Calibration value in 0.01 sec/day"
+  },
+  "134": {
+    "name": "Overstroom drempelwaarde",
+    "description": "Overcurrent threshold",
+    "register": 134,
+    "length": 1,
+    "access": "R/W",
+    "unit": "0.01A",
+    "command": "01 03 00 86 00 01",
+    "responseFormat": "Threshold in 0.01A"
+  },
+  "135": {
+    "name": "Overstroom herstel tijd",
+    "description": "Overcurrent recovery time",
+    "register": 135,
+    "length": 1,
+    "access": "R/W",
+    "unit": "minutes",
+    "command": "01 03 00 87 00 01",
+    "responseFormat": "Recovery time in minutes"
+  },
+  "136": {
+    "name": "Werkstatus & laatste operatie",
+    "description": "Working status & last operation",
+    "register": 136,
+    "length": 1,
+    "access": "R",
+    "unit": "Status codes",
+    "command": "01 03 00 88 00 01",
+    "responseFormat": "High byte: last step, Low byte: 0=config fail, 1=config stage, 2=network stage, 3=comm stage"
+  },
+  "137": {
+    "name": "Signaalsterkte",
+    "description": "Signal strength",
+    "register": 137,
+    "length": 1,
+    "access": "R",
+    "unit": "1%",
+    "command": "01 03 00 89 00 01",
+    "responseFormat": "Signal strength in %"
+  },
+  "162": {
+    "name": "Data rapportage interval",
+    "description": "Data reporting interval",
+    "register": 162,
+    "length": 1,
+    "access": "R/W",
+    "unit": "minutes",
+    "command": "01 03 00 A2 00 01",
+    "responseFormat": "Interval in minutes (1-1440, default 2)"
+  },
+  "ALL_LIVE": {
+    "name": "Alle live data",
+    "description": "All live measurement data",
+    "register": "122-129",
+    "length": 8,
+    "access": "R",
+    "unit": "Mixed",
+    "command": "01 03 00 7A 00 08",
+    "responseFormat": "Active power, Reactive power, Voltage, Current, Power factor, Frequency, Relay status, Working mode"
+  },
+  "ALL_ENERGY": {
+    "name": "Alle energie data",
+    "description": "All energy related data",
+    "register": "104-112",
+    "length": 9,
+    "access": "R",
+    "unit": "Mixed",
+    "command": "01 03 00 68 00 09",
+    "responseFormat": "Total energy, Remaining energy, Total amount (4 bytes), Remaining amount (4 bytes)"
+  }
+}

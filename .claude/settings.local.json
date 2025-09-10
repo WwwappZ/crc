@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pkill:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)",
+      "Bash(node server.js)",
+      "Bash(node:*)",
+      "Bash(textutil:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

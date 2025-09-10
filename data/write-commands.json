@@ -1,0 +1,201 @@
+{
+  "101": {
+    "name": "Communicatie adres instellen",
+    "description": "Set communication address",
+    "register": 101,
+    "functionCode": "06",
+    "dataType": "uint16",
+    "unit": "1-247",
+    "min": 1,
+    "max": 247,
+    "defaultValue": 1,
+    "help": "Stel het Modbus slave adres in (1-247)"
+  },
+  "129": {
+    "name": "Werkingsmodus instellen",
+    "description": "Set working mode",
+    "register": 129,
+    "functionCode": "06",
+    "dataType": "select",
+    "unit": "Mode",
+    "options": [
+      {"value": 0, "label": "Postpaid (achteraf betalen)"},
+      {"value": 1, "label": "Energy prepaid (energie vooruitbetalen)"},
+      {"value": 2, "label": "Amount prepaid (bedrag vooruitbetalen)"}
+    ],
+    "defaultValue": 0,
+    "help": "Selecteer de werkingsmodus van de meter. Let op: wijzigen vereist het indrukken van de knop op de meter."
+  },
+  "130": {
+    "name": "Tijd instellen",
+    "description": "Set time",
+    "register": 130,
+    "functionCode": "10",
+    "dataType": "datetime",
+    "unit": "Year/Month/Day/Hour/Min/Sec",
+    "help": "Stel de huidige datum en tijd in. Formaat: YYYY-MM-DD HH:MM:SS"
+  },
+  "133": {
+    "name": "RTC kalibratie",
+    "description": "RTC calibration",
+    "register": 133,
+    "functionCode": "06",
+    "dataType": "int16",
+    "unit": "0.01 sec/day",
+    "min": -3276.8,
+    "max": 3276.7,
+    "step": 0.01,
+    "defaultValue": 0,
+    "help": "Kalibreer de real-time clock. Eenheid: 0.01 seconden per dag. 0 = reset kalibratie."
+  },
+  "134": {
+    "name": "Overstroom drempelwaarde",
+    "description": "Overcurrent threshold",
+    "register": 134,
+    "functionCode": "06",
+    "dataType": "uint16",
+    "unit": "0.01A",
+    "min": 0,
+    "max": 655.35,
+    "step": 0.01,
+    "defaultValue": 16.00,
+    "help": "Stel de drempelwaarde in voor overstroom beveiliging (in ampères)"
+  },
+  "135": {
+    "name": "Overstroom herstel tijd",
+    "description": "Overcurrent recovery time",
+    "register": 135,
+    "functionCode": "06",
+    "dataType": "uint16",
+    "unit": "minutes",
+    "min": 0,
+    "max": 65535,
+    "defaultValue": 1,
+    "help": "Tijd in minuten voordat de meter automatisch wordt ingeschakeld na overstroom"
+  },
+  "158": {
+    "name": "ADR functie",
+    "description": "ADR function",
+    "register": 158,
+    "functionCode": "06",
+    "dataType": "select",
+    "unit": "On/Off",
+    "options": [
+      {"value": 0, "label": "ADR uitgeschakeld"},
+      {"value": 1, "label": "ADR ingeschakeld (automatische datarate aanpassing)"}
+    ],
+    "defaultValue": 1,
+    "help": "Automatische datarate aanpassing voor LoRaWAN optimalisatie"
+  },
+  "159": {
+    "name": "LoRaWAN datarate",
+    "description": "LoRaWAN data rate",
+    "register": 159,
+    "functionCode": "06",
+    "dataType": "select",
+    "unit": "SF/BW",
+    "options": [
+      {"value": 0, "label": "SF12, BW125"},
+      {"value": 1, "label": "SF11, BW125"},
+      {"value": 2, "label": "SF10, BW125"},
+      {"value": 3, "label": "SF9, BW125"},
+      {"value": 4, "label": "SF8, BW125"},
+      {"value": 5, "label": "SF7, BW125"},
+      {"value": 6, "label": "SF7, BW250"},
+      {"value": 7, "label": "FSK50"}
+    ],
+    "defaultValue": 0,
+    "help": "LoRaWAN datarate instelling (alleen actief wanneer ADR is uitgeschakeld)"
+  },
+  "160": {
+    "name": "LoRaWAN poort",
+    "description": "LoRaWAN port",
+    "register": 160,
+    "functionCode": "06",
+    "dataType": "uint16",
+    "unit": "Port",
+    "min": 1,
+    "max": 254,
+    "defaultValue": 2,
+    "help": "LoRaWAN applicatie poort nummer (1-254)"
+  },
+  "161": {
+    "name": "Zendvermogen",
+    "description": "Transmit power",
+    "register": 161,
+    "functionCode": "06",
+    "dataType": "select",
+    "unit": "dBm",
+    "options": [
+      {"value": 0, "label": "20 dBm"},
+      {"value": 1, "label": "18 dBm"},
+      {"value": 2, "label": "16 dBm"},
+      {"value": 3, "label": "14 dBm"},
+      {"value": 4, "label": "12 dBm"},
+      {"value": 5, "label": "10 dBm"},
+      {"value": 6, "label": "8 dBm"},
+      {"value": 7, "label": "6 dBm"}
+    ],
+    "defaultValue": 0,
+    "help": "LoRaWAN zendvermogen instelling"
+  },
+  "162": {
+    "name": "Data rapportage interval",
+    "description": "Data reporting interval",
+    "register": 162,
+    "functionCode": "06",
+    "dataType": "uint16",
+    "unit": "minutes",
+    "min": 1,
+    "max": 1440,
+    "defaultValue": 2,
+    "help": "Interval in minuten tussen automatische data uploads (1-1440 minuten, standaard 2)"
+  },
+  "163": {
+    "name": "Energie overdraf drempel",
+    "description": "Energy overdraft threshold",
+    "register": 163,
+    "functionCode": "10",
+    "dataType": "uint32",
+    "unit": "0.01 kWh",
+    "min": 0,
+    "max": 1000000.00,
+    "step": 0.01,
+    "defaultValue": 0,
+    "help": "Maximaal toegestane energie overdraf in kWh (vereist knop indrukken op meter)"
+  },
+  "165": {
+    "name": "Bedrag overdraf drempel", 
+    "description": "Amount overdraft threshold",
+    "register": 165,
+    "functionCode": "10",
+    "dataType": "uint32",
+    "unit": "0.01 Rand",
+    "min": 0,
+    "max": 10000000.00,
+    "step": 0.01,
+    "defaultValue": 0,
+    "help": "Maximaal toegestaan bedrag overdraf in Rand (vereist knop indrukken op meter)"
+  },
+  "167": {
+    "name": "Relais schakelaar",
+    "description": "Relay control",
+    "register": 167,
+    "functionCode": "10",
+    "dataType": "uint32",
+    "unit": "seconds",
+    "min": 0,
+    "max": 4294967296,
+    "defaultValue": 0,
+    "help": "Relais schakelaar: 0 = inschakelen (sluiten), >0 = uitschakelen voor X seconden. Max 2^32 seconden."
+  },
+  "RESTART": {
+    "name": "Meter herstarten",
+    "description": "Restart meter",
+    "register": 100,
+    "functionCode": "06", 
+    "dataType": "special",
+    "specialValue": "0xA55A",
+    "help": "Herstart de meter en start upgrade proces. Gebruikt speciale waarde 0xA55A naar register 100."
+  }
+}

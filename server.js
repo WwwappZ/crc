@@ -7,6 +7,7 @@ const DATA_FILE = path.join(__dirname, 'commands.json');
 
 // Zorg dat we POST-data kunnen parsen
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 // Globale opslag voor commands (wordt in de routes ingelezen)
 global.DATA_FILE = DATA_FILE;
@@ -27,12 +28,10 @@ if (fs.existsSync(DATA_FILE)) {
 app.use('/', require('./routes/index'));
 app.use('/decode', require('./routes/decode'));
 app.use('/hex2base64', require('./routes/hex2base64'));
-app.use('/wizard', require('./routes/wizard/index'));
-app.use('/wizard/off', require('./routes/wizard/off'));
-app.use('/wizard/current', require('./routes/wizard/current'));
-app.use('/wizard/energy', require('./routes/wizard/energy'));
+app.use('/readcommands', require('./routes/readcommands'));
+app.use('/writecommands', require('./routes/writecommands'));
 
-const PORT = 3000;
+const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`Server draait op http://localhost:${PORT}`);
 });

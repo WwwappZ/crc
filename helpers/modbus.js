@@ -32,18 +32,75 @@ function calculateCRC16(hexInput) {
   }
   
   /**
-   * Analyseer een Modbus-frame (leesfunctie of schrijffunctie) door de laatste 4 hextekens (CRC) te verwijderen.
-   * Bij leesfuncties wordt tevens de registerwaarde gedeeld door 100.
+   * Analyseer een Modbus-frame (leesfunctie of schrijffunctie).
+   * Voor leesfuncties wordt de registerwaarde gedeeld door 100 (of 10000 voor 4-byte waarden).
    */
   function analyzeModbusFrame(hexFrame) {
     const cleaned = hexFrame.replace(/\s+/g, '').toUpperCase();
-    if (cleaned.length < 4) return null;
-    const dataWithoutCRC = cleaned.slice(0, -4);
+    if (cleaned.length < 6) return null; // Minimaal slave + func + crc
     
+    // Parse basic frame structure
+    const slave = cleaned.substr(0, 2);
+    const func = cleaned.substr(2, 2);
+    
+    // Check if this is a read response (function codes 03 or 04)
+    if (func === '03' || func === '04') {
+      if (cleaned.length < 10) return null; // Minimaal voor read response
+      const byteCount = parseInt(cleaned.substr(4, 2), 16);
+      const expectedLength = 6 + (byteCount * 2) + 4; // slave + func + bytecount + data + crc
+      
+      if (cleaned.length === expectedLength) {
+        const dataStart = 6; // Start na slave + func + bytecount
+        const dataHex = cleaned.substr(dataStart, byteCount * 2);
+        
+        // Voor 2-byte waarden (meest voorkomend)
+        if (byteCount === 2) {
+          const regValue = parseInt(dataHex, 16);
+          const regValueScaled = regValue / 100;
+          return {
+            type: 'read',
+            slave,
+            func,
+            byteCount: cleaned.substr(4, 2),
+            regValueHex: dataHex.match(/.{1,2}/g).join(' '),
+            regValue,
+            regValueScaled
+          };
+        } 
+        // Voor 4-byte waarden (zoals totaal bedrag)
+        else if (byteCount === 4) {
+          const regValue = parseInt(dataHex, 16);
+          const regValueScaled = regValue / 10000; // Voor 4-byte waarden schaalfactor 0.0001
+          return {
+            type: 'read',
+            slave,
+            func,
+            byteCount: cleaned.substr(4, 2),
+            regValueHex: dataHex.match(/.{1,2}/g).join(' '),
+            regValue,
+            regValueScaled
+          };
+        }
+        // Voor andere byte counts
+        else {
+          const regValue = parseInt(dataHex, 16);
+          return {
+            type: 'read',
+            slave,
+            func,
+            byteCount: cleaned.substr(4, 2),
+            regValueHex: dataHex.match(/.{1,2}/g).join(' '),
+            regValue,
+            regValueScaled: regValue / 100 // Default schaling
+          };
+        }
+      }
+    }
+    
+    // Check for write response (function code 06) - legacy support
+    const dataWithoutCRC = cleaned.slice(0, -4);
     if (dataWithoutCRC.length === 12) {
       // Schrijf-response: slave, functecode, registeradres (2 bytes) en registerwaarde (2 bytes)
-      const slave = dataWithoutCRC.substr(0, 2);
-      const func = dataWithoutCRC.substr(2, 2);
       const regAddrHex = dataWithoutCRC.substr(4, 4);
       const regValueHex = dataWithoutCRC.substr(8, 4);
       const regAddr = parseInt(regAddrHex, 16);
@@ -59,26 +116,9 @@ function calculateCRC16(hexInput) {
         regValue,
         regValueScaled
       };
-    } else if (dataWithoutCRC.length === 10) {
-      // Lees-response: slave, functecode, byte count en registerwaarde (2 bytes)
-      const slave = dataWithoutCRC.substr(0, 2);
-      const func = dataWithoutCRC.substr(2, 2);
-      const byteCount = dataWithoutCRC.substr(4, 2);
-      const regValueHex = dataWithoutCRC.substr(6, 4);
-      const regValue = parseInt(regValueHex, 16);
-      const regValueScaled = regValue / 100;
-      return {
-        type: 'read',
-        slave,
-        func,
-        byteCount,
-        regValueHex: regValueHex.match(/.{1,2}/g).join(' '),
-        regValue,
-        regValueScaled
-      };
-    } else {
-      return null;
     }
+    
+    return null;
   }
   
   /**
