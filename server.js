@@ -31,7 +31,7 @@ app.use('/hex2base64', require('./routes/hex2base64'));
 app.use('/readcommands', require('./routes/readcommands'));
 app.use('/writecommands', require('./routes/writecommands'));
 
-const PORT = 3001;
+const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server draait op http://localhost:${PORT}`);
 });
